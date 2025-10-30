@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TransBus - Reserva tu Viaje</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-lg">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <i class="fas fa-bus text-3xl text-blue-600"></i>
+          <h1 class="text-2xl font-bold text-gray-800">TransBus</h1>
+        </div>
+        <div class="text-blue-600 font-semibold">
+          <i class="fas fa-phone"></i> 1-800-TRANSBUS
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 py-8">
+    <!-- Paso 1: Selección de Ruta -->
+    <div id="paso1" class="max-w-4xl mx-auto">
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-center mb-6 flex items-center justify-center">
+          <i class="fas fa-route text-blue-600 mr-2"></i>
+          Paso 1: Selecciona tu Ruta y Horario
+        </h2>
+        
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Origen</label>
+            <select id="origen" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+              <option value="">Selecciona origen</option>
+              <option value="Ciudad de México">Ciudad de México</option>
+              <option value="Guadalajara">Guadalajara</option>
+              <option value="Monterrey">Monterrey</option>
+              <option value="Puebla">Puebla</option>
+              <option value="Tijuana">Tijuana</option>
+              <option value="León">León</option>
+              <option value="Querétaro">Querétaro</option>
+              <option value="Cancún">Cancún</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Destino</label>
+            <select id="destino" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+              <option value="">Selecciona destino</option>
+              <option value="Ciudad de México">Ciudad de México</option>
+              <option value="Guadalajara">Guadalajara</option>
+              <option value="Monterrey">Monterrey</option>
+              <option value="Puebla">Puebla</option>
+              <option value="Tijuana">Tijuana</option>
+              <option value="León">León</option>
+              <option value="Querétaro">Querétaro</option>
+              <option value="Cancún">Cancún</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Fecha de Viaje</label>
+          <input type="date" id="fecha" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+        </div>
+
+        <div id="horariosContainer" class="mt-6 hidden">
+          <h3 class="text-lg font-semibold mb-4">Horarios Disponibles</h3>
+          <div id="horarios" class="grid gap-3">
+            <!-- Los horarios se llenarán dinámicamente -->
+          </div>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button id="btnBuscarViajes" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+            <i class="fas fa-search mr-2"></i>
+            Buscar Viajes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 2: Selección de Asientos -->
+    <div id="paso2" class="max-w-4xl mx-auto hidden">
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-center mb-6 flex items-center justify-center">
+          <i class="fas fa-chair text-blue-600 mr-2"></i>
+          Paso 2: Selecciona tu Asiento
+        </h2>
+        
+        <div class="grid lg:grid-cols-2 gap-6">
+          <!-- Mapa de Asientos -->
+          <div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <div class="text-center mb-4">
+                <div class="bg-gray-300 text-gray-700 px-4 py-2 rounded-t-lg inline-block">
+                  <i class="fas fa-steering-wheel mr-2"></i>
+                  Conductor
+                </div>
+              </div>
+              
+              <div id="mapaAsientos" class="space-y-2">
+                <!-- Los asientos se generarán dinámicamente -->
+              </div>
+
+              <div class="mt-4 flex flex-wrap gap-4 text-sm">
+                <div class="flex items-center">
+                  <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                  <span>Disponible</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                  <span>Ocupado</span>
+                </div>
+                <div class="flex items-center">
+                  <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                  <span>Seleccionado</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información del Viaje -->
+          <div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+              <h3 class="font-semibold text-lg mb-4">Resumen del Viaje</h3>
+              <div id="resumenViaje" class="space-y-3">
+                <!-- Se llenará dinámicamente -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 text-center">
+          <button id="btnContinuarPago" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold disabled:bg-gray-400" disabled>
+            <i class="fas fa-credit-card mr-2"></i>
+            Continuar al Pago
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Paso 3: Información del Pasajero -->
+    <div id="paso3" class="max-w-2xl mx-auto hidden">
+      <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <h2 class="text-xl font-bold text-center mb-6 flex items-center justify-center">
+          <i class="fas fa-user text-blue-600 mr-2"></i>
+          Paso 3: Información del Pasajero
+        </h2>
+        
+        <form id="formPasajero" class="space-y-4">
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Nombre(s)*</label>
+              <input type="text" id="nombre" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos*</label>
+              <input type="text" id="apellidos" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Email*</label>
+              <input type="email" id="email" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Teléfono*</label>
+              <input type="tel" id="telefono" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" required>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Identificación</label>
+            <input type="text" id="identificacion" class="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none" placeholder="Número de INE, Pasaporte, etc.">
+          </div>
+
+          <div id="errorBox" class="hidden text-sm text-red-700 bg-red-100 p-3 rounded-lg">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            <span id="errorMessage"></span>
+          </div>
+
+          <div class="text-center">
+            <button type="submit" id="btnPagar" class="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+              <i class="fas fa-credit-card mr-2"></i>
+              Proceder al Pago ($25.00 USD)
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Confirmación de Pago -->
+    <div id="pagoExitoso" class="max-w-2xl mx-auto hidden">
+      <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+        <div class="mb-4">
+          <i class="fas fa-check-circle text-6xl text-green-500"></i>
+        </div>
+        <h2 class="text-2xl font-bold text-green-600 mb-4">¡Pago Exitoso!</h2>
+        <p class="text-gray-600 mb-6">Tu boleto ha sido generado correctamente. Puedes descargarlo ahora.</p>
+        
+        <div id="resumenBoleto" class="bg-gray-50 p-4 rounded-lg mb-6">
+          <!-- Se llenará dinámicamente -->
+        </div>
+
+        <button id="descargarPDF" class="bg-green-600 text-white px-8 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold">
+          <i class="fas fa-download mr-2"></i>
+          Descargar Boleto PDF
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-800 text-white py-8 mt-12">
+    <div class="container mx-auto px-4 text-center">
+      <div class="flex items-center justify-center mb-4">
+        <i class="fas fa-bus text-2xl text-blue-400 mr-3"></i>
+        <span class="text-xl font-bold">TransBus</span>
+      </div>
+      <p class="text-gray-400">Tu viaje comienza aquí. Viaja seguro, viaja cómodo.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>

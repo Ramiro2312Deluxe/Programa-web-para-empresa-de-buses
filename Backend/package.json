@@ -1,0 +1,24 @@
+{
+  "name": "transbus-backend",
+  "version": "1.0.0",
+  "description": "Backend para sistema de reserva de asientos TransBus",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["transporte", "boletos", "reservas", "stripe", "nodejs"],
+  "author": "TransBus Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "stripe": "^16.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
