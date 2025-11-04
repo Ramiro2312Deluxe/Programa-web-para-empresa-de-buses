@@ -5,6 +5,28 @@
   transition: all 0.3s ease;
 }
 
+/* Estilos para vista previa de asientos */
+.seat-preview-container {
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 8px;
+  max-width: 120px;
+  margin: 0 auto;
+}
+
+.seat-mini-grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.seat-mini-grid > div {
+  display: flex;
+  gap: 2px;
+}
+
 /* Estilos para asientos */
 .asiento {
   width: 40px;
