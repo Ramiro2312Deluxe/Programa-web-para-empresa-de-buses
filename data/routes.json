@@ -1,0 +1,247 @@
+{
+  "Ciudad de México-Guadalajara": {
+    "duration": "7h 30m",
+    "distance": "550 km",
+    "basePrice": 450,
+    "schedules": [
+      {
+        "id": 1,
+        "time": "06:00",
+        "arrival": "13:30",
+        "type": "Ejecutivo",
+        "price": 450
+      },
+      {
+        "id": 2,
+        "time": "10:00",
+        "arrival": "17:30",
+        "type": "Primera Clase",
+        "price": 550
+      },
+      {
+        "id": 3,
+        "time": "14:00",
+        "arrival": "21:30",
+        "type": "Ejecutivo",
+        "price": 450
+      },
+      {
+        "id": 4,
+        "time": "20:00",
+        "arrival": "03:30+1",
+        "type": "Primera Clase",
+        "price": 550
+      }
+    ]
+  },
+  "Ciudad de México-Monterrey": {
+    "duration": "9h 15m",
+    "distance": "920 km",
+    "basePrice": 650,
+    "schedules": [
+      {
+        "id": 5,
+        "time": "08:00",
+        "arrival": "17:15",
+        "type": "Ejecutivo",
+        "price": 650
+      },
+      {
+        "id": 6,
+        "time": "16:00",
+        "arrival": "01:15+1",
+        "type": "Primera Clase",
+        "price": 750
+      },
+      {
+        "id": 7,
+        "time": "22:00",
+        "arrival": "07:15+1",
+        "type": "Ejecutivo",
+        "price": 650
+      }
+    ]
+  },
+  "Guadalajara-Ciudad de México": {
+    "duration": "7h 30m",
+    "distance": "550 km",
+    "basePrice": 450,
+    "schedules": [
+      {
+        "id": 8,
+        "time": "07:00",
+        "arrival": "14:30",
+        "type": "Primera Clase",
+        "price": 550
+      },
+      {
+        "id": 9,
+        "time": "11:00",
+        "arrival": "18:30",
+        "type": "Ejecutivo",
+        "price": 450
+      },
+      {
+        "id": 10,
+        "time": "19:00",
+        "arrival": "02:30+1",
+        "type": "Primera Clase",
+        "price": 550
+      }
+    ]
+  },
+  "Ciudad de México-Puebla": {
+    "duration": "2h 30m",
+    "distance": "130 km",
+    "basePrice": 180,
+    "schedules": [
+      {
+        "id": 11,
+        "time": "06:00",
+        "arrival": "08:30",
+        "type": "Ejecutivo",
+        "price": 180
+      },
+      {
+        "id": 12,
+        "time": "09:00",
+        "arrival": "11:30",
+        "type": "Primera Clase",
+        "price": 220
+      },
+      {
+        "id": 13,
+        "time": "14:00",
+        "arrival": "16:30",
+        "type": "Ejecutivo",
+        "price": 180
+      },
+      {
+        "id": 14,
+        "time": "18:00",
+        "arrival": "20:30",
+        "type": "Primera Clase",
+        "price": 220
+      }
+    ]
+  },
+  "Puebla-Ciudad de México": {
+    "duration": "2h 30m",
+    "distance": "130 km",
+    "basePrice": 180,
+    "schedules": [
+      {
+        "id": 15,
+        "time": "07:00",
+        "arrival": "09:30",
+        "type": "Ejecutivo",
+        "price": 180
+      },
+      {
+        "id": 16,
+        "time": "12:00",
+        "arrival": "14:30",
+        "type": "Primera Clase",
+        "price": 220
+      },
+      {
+        "id": 17,
+        "time": "16:00",
+        "arrival": "18:30",
+        "type": "Ejecutivo",
+        "price": 180
+      },
+      {
+        "id": 18,
+        "time": "20:00",
+        "arrival": "22:30",
+        "type": "Primera Clase",
+        "price": 220
+      }
+    ]
+  },
+  "Monterrey-Ciudad de México": {
+    "duration": "9h 15m",
+    "distance": "920 km",
+    "basePrice": 650,
+    "schedules": [
+      {
+        "id": 19,
+        "time": "09:00",
+        "arrival": "18:15",
+        "type": "Ejecutivo",
+        "price": 650
+      },
+      {
+        "id": 20,
+        "time": "17:00",
+        "arrival": "02:15+1",
+        "type": "Primera Clase",
+        "price": 750
+      },
+      {
+        "id": 21,
+        "time": "23:00",
+        "arrival": "08:15+1",
+        "type": "Ejecutivo",
+        "price": 650
+      }
+    ]
+  },
+  "Guadalajara-Monterrey": {
+    "duration": "8h 45m",
+    "distance": "830 km",
+    "basePrice": 600,
+    "schedules": [
+      {
+        "id": 22,
+        "time": "08:00",
+        "arrival": "16:45",
+        "type": "Ejecutivo",
+        "price": 600
+      },
+      {
+        "id": 23,
+        "time": "15:00",
+        "arrival": "23:45",
+        "type": "Primera Clase",
+        "price": 700
+      },
+      {
+        "id": 24,
+        "time": "21:00",
+        "arrival": "05:45+1",
+        "type": "Ejecutivo",
+        "price": 600
+      }
+    ]
+  },
+  "Monterrey-Guadalajara": {
+    "duration": "8h 45m",
+    "distance": "830 km",
+    "basePrice": 600,
+    "schedules": [
+      {
+        "id": 25,
+        "time": "09:00",
+        "arrival": "17:45",
+        "type": "Ejecutivo",
+        "price": 600
+      },
+      {
+        "id": 26,
+        "time": "16:00",
+        "arrival": "00:45+1",
+        "type": "Primera Clase",
+        "price": 700
+      },
+      {
+        "id": 27,
+        "time": "22:00",
+        "arrival": "06:45+1",
+        "type": "Ejecutivo",
+        "price": 600
+      }
+    ]
+  }
+}
