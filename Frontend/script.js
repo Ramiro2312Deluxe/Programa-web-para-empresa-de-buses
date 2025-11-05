@@ -1,19 +1,20 @@
+// Configuración de la API
+const API_BASE_URL = window.location.origin;
+
 // Estado global de la aplicación TransBus
 let appState = {
     selectedRoute: null,
     selectedSchedule: null,
     selectedSeat: null,
     occupiedSeats: new Set(),
-    availableRoutes: null,
-    totalSeats: 45 // Capacidad estándar del autobús
+    availableRoutes: {} // Se cargará desde el backend
 };
 
-// Cache para datos del servidor
-let routesCache = null;
-
 // Inicialización cuando el DOM está listo
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", async function() {
     console.log("🚌 TransBus iniciado correctamente");
+    await loadRoutesFromBackend();
+    await loadCitiesFromBackend();
     setupApp();
 });
 
@@ -21,7 +22,66 @@ function setupApp() {
     setupEventListeners();
     setupDateInput();
     checkPaymentStatus();
-    loadAvailableRoutes(); // Cargar rutas del servidor
+}
+
+/**
+ * Cargar rutas desde el backend
+ */
+async function loadRoutesFromBackend() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/routes`);
+        if (!response.ok) {
+            throw new Error('No se pudieron cargar las rutas');
+        }
+        const data = await response.json();
+        appState.availableRoutes = data;
+        console.log('✅ Rutas cargadas desde el backend:', Object.keys(data).length, 'rutas');
+    } catch (error) {
+        console.error('❌ Error cargando rutas:', error);
+        showError('No se pudieron cargar las rutas disponibles. Por favor recarga la página.');
+    }
+}
+
+/**
+ * Cargar ciudades únicas desde el backend para los selectores
+ */
+async function loadCitiesFromBackend() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/cities`);
+        if (!response.ok) {
+            throw new Error('No se pudieron cargar las ciudades');
+        }
+        const data = await response.json();
+        const cities = data.cities;
+        
+        // Actualizar selectores de origen y destino
+        const origenSelect = document.getElementById("origen");
+        const destinoSelect = document.getElementById("destino");
+        
+        if (origenSelect && destinoSelect) {
+            // Limpiar opciones existentes (excepto la primera)
+            origenSelect.innerHTML = '<option value="">Selecciona origen</option>';
+            destinoSelect.innerHTML = '<option value="">Selecciona destino</option>';
+            
+            // Agregar ciudades dinámicamente
+            cities.forEach(city => {
+                const optionOrigen = document.createElement('option');
+                optionOrigen.value = city;
+                optionOrigen.textContent = city;
+                origenSelect.appendChild(optionOrigen);
+                
+                const optionDestino = document.createElement('option');
+                optionDestino.value = city;
+                optionDestino.textContent = city;
+                destinoSelect.appendChild(optionDestino);
+            });
+            
+            console.log('✅ Ciudades cargadas desde el backend:', cities.length, 'ciudades');
+        }
+    } catch (error) {
+        console.error('❌ Error cargando ciudades:', error);
+        // No mostrar error crítico, los selectores mantendrán valores por defecto si fallan
+    }
 }
 
 function setupEventListeners() {
@@ -59,7 +119,7 @@ function setupDateInput() {
     }
 }
 
-async function handleSearchTrips() {
+function handleSearchTrips() {
     const origen = document.getElementById("origen")?.value;
     const destino = document.getElementById("destino")?.value;
     const fecha = document.getElementById("fecha")?.value;
@@ -74,42 +134,54 @@ async function handleSearchTrips() {
         return;
     }
 
-    // Mostrar loading
-    const btnBuscar = document.getElementById("btnBuscarViajes");
-    const originalText = btnBuscar.innerHTML;
-    btnBuscar.disabled = true;
-    btnBuscar.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>Buscando...';
+    const routeKey = `${origen}-${destino}`;
+    const routeData = appState.availableRoutes[routeKey];
 
+    if (!routeData) {
+        showError(`No hay viajes disponibles para la ruta ${origen} → ${destino}`);
+        return;
+    }
+
+    appState.selectedRoute = { key: routeKey, data: routeData, fecha };
+    hideError();
+    
+    // Cargar asientos ocupados y mostrar horarios
+    loadOccupiedSeatsAndDisplaySchedules(origen, destino, fecha, routeData.schedules);
+}
+
+/**
+ * Cargar asientos ocupados y mostrar horarios
+ */
+async function loadOccupiedSeatsAndDisplaySchedules(origen, destino, fecha, schedules) {
+    displaySchedules(schedules);
+    
+    const horariosContainer = document.getElementById("horariosContainer");
+    if (horariosContainer) {
+        horariosContainer.classList.remove("hidden");
+    }
+}
+
+/**
+ * Cargar asientos ocupados desde el backend para un horario específico
+ */
+async function loadOccupiedSeats(origen, destino, fecha, horario) {
     try {
-        // Cargar rutas si no están en cache
-        if (!routesCache) {
-            await loadAvailableRoutes();
-        }
-
-        const routeKey = `${origen}-${destino}`;
-        const routeData = routesCache[routeKey];
-
-        if (!routeData) {
-            showError(`No hay viajes disponibles para la ruta ${origen} → ${destino}`);
-            return;
-        }
-
-        appState.selectedRoute = { key: routeKey, data: routeData, fecha };
-        hideError();
+        const params = new URLSearchParams({ origen, destino, fecha, horario });
+        const response = await fetch(`${API_BASE_URL}/api/occupied-seats?${params}`);
         
-        displaySchedulesWithPreview(routeData.schedules, origen, destino, fecha);
-        
-        const horariosContainer = document.getElementById("horariosContainer");
-        if (horariosContainer) {
-            horariosContainer.classList.remove("hidden");
+        if (!response.ok) {
+            throw new Error('No se pudieron cargar los asientos ocupados');
         }
-
+        
+        const data = await response.json();
+        appState.occupiedSeats = new Set(data.occupiedSeats);
+        console.log(`✅ Asientos ocupados cargados: ${data.occupiedSeats.length} asientos`);
+        
+        return data.occupiedSeats;
     } catch (error) {
-        console.error('Error buscando viajes:', error);
-        showError("Error al buscar viajes. Intenta de nuevo.");
-    } finally {
-        btnBuscar.disabled = false;
-        btnBuscar.innerHTML = originalText;
+        console.error('❌ Error cargando asientos ocupados:', error);
+        appState.occupiedSeats = new Set();
+        return [];
     }
 }
 
@@ -142,182 +214,6 @@ function displaySchedules(schedules) {
     });
 }
 
-/**
- * Cargar rutas disponibles del servidor
- */
-async function loadAvailableRoutes() {
-    try {
-        const response = await fetch('/api/routes');
-        if (!response.ok) {
-            throw new Error('Error al cargar rutas');
-        }
-        routesCache = await response.json();
-        return routesCache;
-    } catch (error) {
-        console.error('Error cargando rutas:', error);
-        showError('Error al cargar rutas disponibles');
-        throw error;
-    }
-}
-
-/**
- * Obtener asientos ocupados para una ruta específica
- */
-async function getOccupiedSeats(origen, destino, fecha, horario) {
-    try {
-        const params = new URLSearchParams({
-            origen,
-            destino,
-            fecha,
-            horario
-        });
-        
-        const response = await fetch(`/api/occupied-seats?${params}`);
-        if (!response.ok) {
-            throw new Error('Error al obtener asientos ocupados');
-        }
-        
-        const data = await response.json();
-        return new Set(data.occupiedSeats);
-    } catch (error) {
-        console.error('Error obteniendo asientos ocupados:', error);
-        return new Set(); // Retornar set vacío en caso de error
-    }
-}
-
-/**
- * Mostrar horarios con vista previa de asientos
- */
-async function displaySchedulesWithPreview(schedules, origen, destino, fecha) {
-    const horariosDiv = document.getElementById("horarios");
-    if (!horariosDiv) return;
-
-    horariosDiv.innerHTML = '<div class="text-center">Cargando disponibilidad...</div>';
-
-    try {
-        const scheduleCards = await Promise.all(schedules.map(async (schedule) => {
-            // Obtener asientos ocupados para este horario específico
-            const occupiedSeats = await getOccupiedSeats(origen, destino, fecha, schedule.time);
-            const availableSeats = appState.totalSeats - occupiedSeats.size;
-            
-            const card = document.createElement("div");
-            card.className = "border-2 border-gray-300 rounded-lg p-4 cursor-pointer hover:border-blue-500 transition-colors";
-            card.dataset.scheduleId = schedule.id;
-            
-            // Crear vista previa de asientos
-            const seatPreview = createSeatPreview(occupiedSeats);
-            
-            card.innerHTML = `
-                <div class="space-y-3">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <div class="font-bold text-lg">${schedule.time}</div>
-                            <div class="text-sm text-gray-600">${schedule.type}</div>
-                            <div class="text-xs text-gray-500">Llegada: ${schedule.arrival}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-bold text-blue-600 text-xl">$${schedule.price.toFixed(2)} USD</div>
-                            <div class="text-sm ${availableSeats > 10 ? 'text-green-600' : availableSeats > 5 ? 'text-orange-600' : 'text-red-600'}">
-                                ${availableSeats} asientos disponibles
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t pt-2">
-                        <div class="text-xs text-gray-600 mb-2">Vista previa de asientos:</div>
-                        <div class="seat-preview-container">
-                            ${seatPreview}
-                        </div>
-                        <div class="flex justify-between text-xs mt-2">
-                            <span class="flex items-center">
-                                <div class="w-3 h-3 bg-green-500 rounded mr-1"></div>
-                                Disponible
-                            </span>
-                            <span class="flex items-center">
-                                <div class="w-3 h-3 bg-red-500 rounded mr-1"></div>
-                                Ocupado
-                            </span>
-                            <span class="text-gray-600">Total: ${appState.totalSeats}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Guardar datos de asientos ocupados en el elemento
-            card.dataset.occupiedSeats = JSON.stringify(Array.from(occupiedSeats));
-            
-            card.addEventListener("click", () => selectScheduleWithSeats(schedule, occupiedSeats));
-            return card;
-        }));
-
-        // Limpiar y agregar las tarjetas
-        horariosDiv.innerHTML = "";
-        scheduleCards.forEach(card => horariosDiv.appendChild(card));
-        
-    } catch (error) {
-        console.error('Error mostrando horarios:', error);
-        horariosDiv.innerHTML = '<div class="text-red-600 text-center">Error al cargar horarios</div>';
-    }
-}
-
-/**
- * Crear vista previa de asientos en miniatura
- */
-function createSeatPreview(occupiedSeats) {
-    let seatGrid = '';
-    const seatsPerRow = 4;
-    const totalRows = Math.ceil(appState.totalSeats / seatsPerRow);
-    
-    for (let row = 0; row < totalRows; row++) {
-        seatGrid += '<div class="flex justify-center gap-1 mb-1">';
-        
-        for (let col = 0; col < seatsPerRow; col++) {
-            const seatNumber = row * seatsPerRow + col + 1;
-            
-            if (seatNumber <= appState.totalSeats) {
-                const isOccupied = occupiedSeats.has(String(seatNumber));
-                const seatClass = isOccupied ? 'bg-red-500' : 'bg-green-500';
-                
-                seatGrid += `<div class="w-2 h-2 ${seatClass} rounded-sm" title="Asiento ${seatNumber}"></div>`;
-            } else {
-                seatGrid += '<div class="w-2 h-2"></div>'; // Espacio vacío
-            }
-        }
-        
-        seatGrid += '</div>';
-    }
-    
-    return `<div class="seat-mini-grid">${seatGrid}</div>`;
-}
-
-/**
- * Seleccionar horario con información de asientos
- */
-function selectScheduleWithSeats(schedule, occupiedSeats) {
-    // Quitar selección anterior
-    document.querySelectorAll("[data-schedule-id]").forEach(card => {
-        card.classList.remove("border-blue-500", "bg-blue-50");
-        card.classList.add("border-gray-300");
-    });
-
-    // Seleccionar nueva tarjeta
-    const selectedCard = document.querySelector(`[data-schedule-id="${schedule.id}"]`);
-    if (selectedCard) {
-        selectedCard.classList.remove("border-gray-300");
-        selectedCard.classList.add("border-blue-500", "bg-blue-50");
-    }
-
-    appState.selectedSchedule = schedule;
-    appState.occupiedSeats = occupiedSeats; // Actualizar asientos ocupados
-
-    // Ir al paso 2 después de un breve delay
-    setTimeout(() => {
-        showStep(2);
-        generateSeatMap();
-        updateTripSummary();
-    }, 300);
-}
-
 function selectSchedule(schedule) {
     // Quitar selección anterior
     document.querySelectorAll("[data-schedule-id]").forEach(card => {
@@ -334,12 +230,27 @@ function selectSchedule(schedule) {
 
     appState.selectedSchedule = schedule;
 
-    // Ir al paso 2 después de un breve delay
-    setTimeout(() => {
-        showStep(2);
-        generateSeatMap();
-        updateTripSummary();
-    }, 300);
+    // Cargar asientos ocupados y mostrar mapa
+    const { origen, destino } = getOriginDestinationFromRoute();
+    const fecha = appState.selectedRoute.fecha;
+    
+    loadOccupiedSeats(origen, destino, fecha, schedule.time).then(() => {
+        // Ir al paso 2 después de cargar los asientos
+        setTimeout(() => {
+            showStep(2);
+            generateSeatMap();
+            updateTripSummary();
+        }, 300);
+    });
+}
+
+/**
+ * Obtener origen y destino de la ruta seleccionada
+ */
+function getOriginDestinationFromRoute() {
+    if (!appState.selectedRoute) return { origen: '', destino: '' };
+    const parts = appState.selectedRoute.key.split('-');
+    return { origen: parts[0], destino: parts[1] };
 }
 
 function generateSeatMap() {
@@ -348,50 +259,16 @@ function generateSeatMap() {
 
     mapaAsientos.innerHTML = "";
 
-    // Mostrar estadísticas de asientos
-    const availableCount = appState.totalSeats - appState.occupiedSeats.size;
-    const statsDiv = document.createElement("div");
-    statsDiv.className = "mb-4 p-3 bg-gray-50 rounded-lg";
-    statsDiv.innerHTML = `
-        <div class="flex justify-between items-center text-sm">
-            <div class="flex items-center space-x-4">
-                <span class="flex items-center">
-                    <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
-                    Disponible (${availableCount})
-                </span>
-                <span class="flex items-center">
-                    <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
-                    Ocupado (${appState.occupiedSeats.size})
-                </span>
-                <span class="flex items-center">
-                    <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
-                    Seleccionado
-                </span>
-            </div>
-            <div class="font-semibold">
-                Total: ${appState.totalSeats} asientos
-            </div>
-        </div>
-    `;
-    mapaAsientos.appendChild(statsDiv);
-
-    // Generar filas de asientos (configuración 2-2)
-    const seatsPerRow = 4;
-    const totalRows = Math.ceil(appState.totalSeats / seatsPerRow);
-
-    for (let fila = 1; fila <= totalRows; fila++) {
+    // Generar 12 filas de asientos
+    for (let fila = 1; fila <= 12; fila++) {
         const filaDiv = document.createElement("div");
         filaDiv.className = "grid grid-cols-5 gap-2 mb-2 items-center";
 
         // Asientos izquierdos (A, B)
         for (let col = 0; col < 2; col++) {
-            const seatNumber = (fila - 1) * seatsPerRow + col + 1;
-            if (seatNumber <= appState.totalSeats) {
-                const seatLabel = `${fila}${String.fromCharCode(65 + col)}`;
-                filaDiv.appendChild(createSeat(seatNumber, seatLabel));
-            } else {
-                filaDiv.appendChild(createEmptySeat());
-            }
+            const seatNumber = (fila - 1) * 4 + col + 1;
+            const seatLabel = `${fila}${String.fromCharCode(65 + col)}`;
+            filaDiv.appendChild(createSeat(seatNumber, seatLabel));
         }
 
         // Número de fila en el centro
@@ -402,34 +279,13 @@ function generateSeatMap() {
 
         // Asientos derechos (C, D)
         for (let col = 2; col < 4; col++) {
-            const seatNumber = (fila - 1) * seatsPerRow + col + 1;
-            if (seatNumber <= appState.totalSeats) {
-                const seatLabel = `${fila}${String.fromCharCode(65 + col)}`;
-                filaDiv.appendChild(createSeat(seatNumber, seatLabel));
-            } else {
-                filaDiv.appendChild(createEmptySeat());
-            }
+            const seatNumber = (fila - 1) * 4 + col + 1;
+            const seatLabel = `${fila}${String.fromCharCode(65 + col)}`;
+            filaDiv.appendChild(createSeat(seatNumber, seatLabel));
         }
 
         mapaAsientos.appendChild(filaDiv);
     }
-
-    // Agregar leyenda al final
-    const legendDiv = document.createElement("div");
-    legendDiv.className = "mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800";
-    legendDiv.innerHTML = `
-        <div class="flex items-center justify-center">
-            <i class="fas fa-info-circle mr-2"></i>
-            Haz clic en un asiento disponible (verde) para seleccionarlo
-        </div>
-    `;
-    mapaAsientos.appendChild(legendDiv);
-}
-
-function createEmptySeat() {
-    const emptySeat = document.createElement("div");
-    emptySeat.className = "w-10 h-10"; // Espacio vacío
-    return emptySeat;
 }
 
 function createSeat(number, label) {
@@ -534,6 +390,39 @@ function showStep(step) {
     });
 }
 
+/**
+ * Seleccionar método de pago
+ */
+function selectPaymentMethod(method) {
+    // Quitar selección anterior
+    document.querySelectorAll('.payment-method-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'bg-blue-50');
+        btn.classList.add('border-gray-300');
+    });
+    
+    // Seleccionar nuevo método
+    event.target.closest('.payment-method-btn').classList.remove('border-gray-300');
+    event.target.closest('.payment-method-btn').classList.add('border-blue-500', 'bg-blue-50');
+    
+    document.getElementById('paymentMethod').value = method;
+    
+    // Actualizar texto del botón según el método
+    const btnPagar = document.getElementById('btnPagar');
+    const price = appState.selectedSchedule ? appState.selectedSchedule.price : 0;
+    
+    const methodNames = {
+        card: 'con Tarjeta',
+        oxxo: 'en OXXO',
+        spei: 'con SPEI',
+        cash: 'en Efectivo'
+    };
+    
+    btnPagar.innerHTML = `
+        <i class="fas fa-lock mr-2"></i>
+        Pagar ${methodNames[method]} ($${price.toFixed(2)} MXN)
+    `;
+}
+
 async function handlePayment(e) {
     e.preventDefault();
 
@@ -544,11 +433,14 @@ async function handlePayment(e) {
 
     const nombre = document.getElementById("nombre")?.value?.trim();
     const apellidos = document.getElementById("apellidos")?.value?.trim();
+    const tipoDocumento = document.getElementById("tipoDocumento")?.value;
+    const numeroDocumento = document.getElementById("numeroDocumento")?.value?.trim();
     const email = document.getElementById("email")?.value?.trim();
     const telefono = document.getElementById("telefono")?.value?.trim();
+    const paymentMethod = document.getElementById("paymentMethod")?.value || 'card';
 
-    if (!nombre || !apellidos || !email || !telefono) {
-        showError("Por favor completa todos los campos requeridos");
+    if (!nombre || !apellidos || !numeroDocumento) {
+        showError("Por favor completa los campos obligatorios: Nombre, Apellidos y Documento de Identidad");
         return;
     }
 
@@ -558,19 +450,25 @@ async function handlePayment(e) {
         btnPagar.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>Procesando...';
     }
 
+    const { origen, destino } = getOriginDestinationFromRoute();
+    
     const paymentData = {
         nombre: `${nombre} ${apellidos}`,
-        origen: appState.selectedRoute.key.split("-")[0],
-        destino: appState.selectedRoute.key.split("-")[1],
+        tipoDocumento,
+        numeroDocumento,
+        origen,
+        destino,
         asiento: appState.selectedSeat.number,
         horario: appState.selectedSchedule.time,
         fecha: appState.selectedRoute.fecha,
         precio: appState.selectedSchedule.price,
-        email: email
+        email: email || null,
+        telefono: telefono || null,
+        paymentMethod
     };
 
     try {
-        const response = await fetch("/api/create-checkout-session", {
+        const response = await fetch(`${API_BASE_URL}/api/create-checkout-session`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paymentData)
@@ -589,7 +487,8 @@ async function handlePayment(e) {
         showError(error.message);
         if (btnPagar) {
             btnPagar.disabled = false;
-            btnPagar.innerHTML = `<i class="fas fa-credit-card mr-2"></i>Proceder al Pago ($${appState.selectedSchedule.price.toFixed(2)} USD)`;
+            const price = appState.selectedSchedule.price;
+            btnPagar.innerHTML = `<i class="fas fa-lock mr-2"></i>Proceder al Pago ($${price.toFixed(2)} MXN)`;
         }
     }
 }

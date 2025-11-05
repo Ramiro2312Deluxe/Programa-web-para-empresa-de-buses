@@ -1,171 +1,280 @@
-# 🚌 TransBus - Sistema de Reserva de Asientos de Transporte
+# 🚌 TransBus - Sistema de Reserva de Boletos de Autobús
 
-Una aplicación web completa para la compra de boletos de transporte con selección visual de asientos, sistema de pagos en línea y generación de boletos PDF.
-
-## ✨ Características
-
-- **🎯 Sin registro necesario**: Los usuarios pueden comprar boletos sin crear cuenta
-- **🗺️ Selección visual de asientos**: Mapa interactivo del autobús
-- **💳 Pagos seguros**: Integración con Stripe para pagos en línea
-- **📱 Diseño responsive**: Funciona perfectamente en móviles y desktop
-- **📄 Boletos PDF**: Generación automática de boletos descargables
-- **🕐 Múltiples horarios**: Sistema de horarios y rutas predefinidas
-- **✅ Validación en tiempo real**: Verificación de disponibilidad de asientos
-
-## 🚀 Instalación y Configuración
-
-### Prerrequisitos
-
-- Node.js (v16 o superior)
-- npm o yarn
-- Cuenta de Stripe (para pagos)
-
-### 1. Clonar y configurar
-
-```bash
-# Navegar al directorio del proyecto
-cd "e:\Free Lancer\Transporte app"
-
-# Instalar dependencias del backend
-cd Backend
-npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-```
-
-### 2. Configurar Stripe
-
-1. Crear una cuenta en [Stripe](https://stripe.com)
-2. Obtener las claves API (modo test para desarrollo)
-3. Editar el archivo `.env` con tus claves:
-
-```env
-STRIPE_SECRET_KEY=sk_test_tu_clave_secreta_aqui
-STRIPE_PUBLISHABLE_KEY=pk_test_tu_clave_publica_aqui
-```
-
-### 3. Ejecutar la aplicación
-
-```bash
-# Desde el directorio Backend
-npm start
-```
-
-La aplicación estará disponible en: `http://localhost:4242`
-
-## 🎮 Uso de la Aplicación
-
-### Para Usuarios
-
-1. **Seleccionar Ruta**: Elegir origen, destino y fecha
-2. **Buscar Viajes**: Ver horarios disponibles y seleccionar uno
-3. **Elegir Asiento**: Usar el mapa visual para seleccionar asiento
-4. **Datos del Pasajero**: Completar información personal
-5. **Pagar**: Proceso seguro con Stripe
-6. **Descargar Boleto**: Obtener boleto PDF después del pago
-
-### Rutas Disponibles
-
-- Ciudad de México ↔ Guadalajara (7h 30m, desde $25 USD)
-- Ciudad de México ↔ Monterrey (9h 15m, desde $35 USD)
-- Guadalajara → Ciudad de México (7h 30m, desde $25 USD)
-
-## 🛠️ Estructura del Proyecto
-
-```
-TransBus/
-├── Backend/
-│   ├── server.js          # Servidor Express principal
-│   ├── package.json       # Dependencias del backend
-│   ├── .env.example      # Variables de entorno de ejemplo
-│   └── .env              # Variables de entorno (crear)
-└── Frontend/
-    ├── index.html        # Página principal
-    ├── script.js         # Lógica del frontend
-    └── style.css         # Estilos personalizados
-```
-
-## 🔧 API Endpoints
-
-### Públicos
-- `GET /api/health` - Estado del servidor
-- `GET /api/routes` - Rutas disponibles
-- `GET /api/occupied-seats` - Asientos ocupados por ruta
-- `POST /api/create-checkout-session` - Crear sesión de pago
-- `GET /api/checkout/session` - Verificar pago
-
-### Administrativos
-- `GET /api/admin/tickets` - Listar todos los boletos
-- `GET /api/admin/stats` - Estadísticas de ventas
-
-## 💡 Funcionalidades Técnicas
-
-### Frontend
-- **Vanilla JavaScript** con ES6+
-- **Tailwind CSS** para estilos
-- **Font Awesome** para iconos
-- **jsPDF** para generación de PDFs
-- **Responsive Design** móvil-first
-
-### Backend
-- **Express.js** como servidor web
-- **Stripe** para procesamiento de pagos
-- **CORS** habilitado para desarrollo
-- **ES Modules** para código moderno
-- **Manejo de errores** robusto
-
-## 🔒 Seguridad
-
-- Validación de datos en frontend y backend
-- Verificación de pagos con Stripe webhooks
-- Sanitización de inputs
-- Manejo seguro de variables de entorno
-- Verificación de disponibilidad en tiempo real
-
-## 📈 Expansión Futura
-
-### Próximas Características
-- Base de datos persistente (PostgreSQL/MongoDB)
-- Sistema de usuarios y historial
-- Notificaciones por email/SMS
-- Panel de administración completo
-- API REST documentada
-- Múltiples métodos de pago
-- Sistema de descuentos y promociones
-- Integración con sistemas de transporte
-
-### Escalabilidad
-- Microservicios
-- Cache con Redis
-- Load balancing
-- CDN para assets estáticos
-- Monitoring y logging
-
-## 🐛 Solución de Problemas
-
-### Error: "Stripe key not found"
-- Verificar que el archivo `.env` existe y tiene las claves correctas
-- Reiniciar el servidor después de cambiar `.env`
-
-### Error: "Asiento no disponible"
-- Los asientos se marcan como ocupados después del pago
-- Refrescar la página para ver estado actualizado
-
-### Problemas de CORS
-- Verificar que el frontend se sirve desde el mismo puerto que el backend
-- En producción, configurar CORS apropiadamente
-
-## 📞 Soporte
-
-Para soporte técnico o consultas:
-- Email: soporte@transbus.com
-- Teléfono: 1-800-TRANSBUS
-
-## 📄 Licencia
-
-Este proyecto está licenciado bajo la MIT License.
+Sistema completo de reserva de boletos de autobús con panel de administración, pagos en MXN (Stripe) y persistencia de datos.
 
 ---
 
-**¡Gracias por usar TransBus! 🚌**
+## 🌟 Características Principales
+
+### Para Clientes
+- ✅ **Búsqueda de viajes** por origen, destino y fecha
+- ✅ **Selección visual de asientos** con mapa interactivo
+- ✅ **Múltiples métodos de pago**: Tarjeta, OXXO, SPEI, efectivo
+- ✅ **Registro simplificado**: Solo nombre, apellidos y documento (sin login)
+- ✅ **Boleto digital**: Descarga PDF automática
+- ✅ **Precios en MXN**: Todo en pesos mexicanos
+
+### Para Administradores
+- ✅ **Panel de administración completo** (`/admin.html`)
+- ✅ **CRUD de rutas**: Crear, editar y eliminar rutas
+- ✅ **CRUD de horarios**: Gestión completa de salidas
+- ✅ **Persistencia automática**: Todas las rutas se guardan en disco
+- ✅ **Estadísticas**: Ventas, ingresos y rutas más populares
+
+### Sistema
+- ✅ **Persistencia de datos**: Archivos JSON para rutas, boletos y reservas
+- ✅ **8 rutas iniciales** incluidas por defecto
+- ✅ **Ciudades dinámicas**: Se cargan automáticamente desde las rutas
+- ✅ **API REST completa**: Documentada y lista para usar
+
+---
+
+## 🚀 Inicio Rápido
+
+### 1. Instalar Dependencias
+```bash
+cd "e:\Free Lancer\Transporte app\Backend"
+npm install
+```
+
+### 2. Configurar Stripe
+Crear archivo `.env` en `Backend/`:
+```env
+STRIPE_SECRET_KEY=sk_test_tu_clave_secreta_aqui
+PORT=4242
+```
+
+**Obtener clave de Stripe:**
+1. Ir a [dashboard.stripe.com](https://dashboard.stripe.com)
+2. Crear cuenta gratuita
+3. Developers → API keys
+4. Copiar "Secret key"
+
+### 3. Iniciar Servidor
+```bash
+node server.js
+```
+
+### 4. Abrir en Navegador
+- **Cliente**: http://localhost:4242
+- **Admin**: http://localhost:4242/admin.html
+
+---
+
+## 📊 Rutas Incluidas
+
+El sistema incluye **8 rutas bidireccionales**:
+
+| Ruta | Distancia | Duración | Precio Base |
+|------|-----------|----------|-------------|
+| CDMX ↔ Guadalajara | 550 km | 7h 30m | $450 |
+| CDMX ↔ Monterrey | 920 km | 9h 15m | $650 |
+| CDMX ↔ Puebla | 130 km | 2h 30m | $180 |
+| Guadalajara ↔ Monterrey | 830 km | 8h 45m | $600 |
+
+**Total**: 28 horarios disponibles
+
+---
+
+## 💾 Sistema de Persistencia
+
+**PROBLEMA RESUELTO**: Las rutas creadas en el admin panel ahora persisten permanentemente.
+
+### ✅ Antes vs Ahora
+
+| Característica | ❌ Antes | ✅ Ahora |
+|----------------|----------|----------|
+| Rutas disponibles | 3 hardcodeadas | 8 dinámicas + las que agregues |
+| Crear desde admin | No persistía | Se guarda automáticamente |
+| Reiniciar servidor | Pérdida de datos | Todos los datos persisten |
+| Ciudades en selectores | Hardcodeadas en HTML | Cargadas dinámicamente desde rutas |
+
+### Archivos de Datos
+
+Ubicación: `Backend/data/`
+
+- **routes.json**: Rutas y horarios
+- **tickets.json**: Boletos vendidos
+- **bookings.json**: Asientos reservados
+
+Ver documentación completa: [SISTEMA_PERSISTENCIA.md](SISTEMA_PERSISTENCIA.md)
+
+---
+
+## 🎯 Cómo Usar
+
+### Cliente (Compra de Boletos)
+
+1. **Buscar viaje**: Seleccionar origen, destino y fecha
+2. **Elegir horario**: Ver opciones con precios
+3. **Seleccionar asiento**: Mapa interactivo (verde=disponible)
+4. **Completar datos**: Nombre, apellidos, documento
+5. **Pagar**: Tarjeta, OXXO, SPEI o efectivo
+6. **Descargar boleto**: PDF con código QR
+
+### Admin (Gestión de Rutas)
+
+1. **Ir a**: http://localhost:4242/admin.html
+2. **Crear ruta**: 
+   - Origen: Cancún
+   - Destino: CDMX
+   - Duración: 24h 0m
+   - Precio: $1200
+3. **Agregar horarios**: Múltiples salidas diarias
+4. **Guardar**: Se persiste automáticamente en `routes.json`
+5. **Verificar**: La ruta aparece inmediatamente en compra de tickets
+
+---
+
+## 🔌 API REST
+
+### Clientes
+
+- `GET /api/routes` - Listar todas las rutas
+- `GET /api/cities` - Obtener ciudades disponibles
+- `GET /api/occupied-seats` - Asientos ocupados
+- `POST /api/create-checkout-session` - Iniciar pago
+- `GET /api/checkout/session` - Verificar pago
+
+### Administración
+
+- `POST /api/admin/routes` - Crear ruta
+- `PUT /api/admin/routes/:routeKey` - Actualizar ruta
+- `DELETE /api/admin/routes/:routeKey` - Eliminar ruta
+- `POST /api/admin/routes/:routeKey/schedules` - Agregar horario
+- `GET /api/admin/tickets` - Listar boletos vendidos
+- `GET /api/admin/stats` - Estadísticas del sistema
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+Transporte app/
+├── Backend/
+│   ├── server.js                 # Servidor Express
+│   ├── utils/
+│   │   └── dataStore.js          # Sistema de persistencia
+│   ├── data/                     # Datos persistidos (JSON)
+│   │   ├── routes.json
+│   │   ├── tickets.json
+│   │   └── bookings.json
+│   └── package.json
+│
+├── Frontend/
+│   ├── index.html                # Compra de boletos
+│   ├── admin.html                # Panel de administración
+│   ├── script.js                 # Lógica cliente
+│   ├── admin.js                  # Lógica admin
+│   └── style.css
+│
+├── README.md                     # Este archivo
+└── SISTEMA_PERSISTENCIA.md       # Documentación técnica
+```
+
+---
+
+## 🧪 Probar Persistencia
+
+```bash
+# 1. Iniciar servidor
+node server.js
+
+# 2. Crear ruta en admin panel
+http://localhost:4242/admin.html
+# Crear "CDMX → Cancún"
+
+# 3. Reiniciar servidor
+Ctrl+C
+node server.js
+
+# 4. Verificar
+cat Backend/data/routes.json
+# Debe incluir "Ciudad de México-Cancún"
+
+# 5. Verificar en frontend
+http://localhost:4242
+# El selector debe mostrar "Cancún"
+```
+
+---
+
+## 🛠️ Tecnologías
+
+### Backend
+- **Node.js** + **Express.js**
+- **Stripe** (pagos)
+- **File System** (persistencia JSON)
+
+### Frontend
+- **HTML5** + **Tailwind CSS**
+- **Vanilla JavaScript**
+- **Font Awesome** (iconos)
+- **jsPDF** (generación de PDFs)
+
+---
+
+## 🐛 Solución de Problemas
+
+### "Cannot find module 'stripe'"
+```bash
+cd Backend
+npm install
+```
+
+### "STRIPE_SECRET_KEY is undefined"
+```bash
+# Crear .env en Backend/
+echo "STRIPE_SECRET_KEY=sk_test_tu_clave" > .env
+```
+
+### "Port 4242 already in use"
+```bash
+# Cambiar puerto en .env
+echo "PORT=3000" >> .env
+```
+
+### Las ciudades no aparecen
+```bash
+# Verificar en consola del navegador (F12)
+# Debe mostrar: "✅ Ciudades cargadas desde el backend"
+```
+
+---
+
+## 📦 Despliegue a Producción
+
+### Preparación
+1. **Cambiar a clave live de Stripe**: `sk_live_...`
+2. **Migrar a base de datos**: MongoDB o PostgreSQL
+3. **Habilitar HTTPS**: Let's Encrypt
+4. **Configurar CORS**: Restringir a tu dominio
+
+### Plataformas Recomendadas
+- **Heroku** (fácil, gratis)
+- **DigitalOcean** (VPS económico)
+- **Railway** (backend + DB integrado)
+
+---
+
+## 📝 Próximas Características
+
+- [ ] Autenticación de administrador
+- [ ] Búsqueda de boletos
+- [ ] Notificaciones email/SMS
+- [ ] Descuentos y promociones
+- [ ] Migración a MongoDB
+
+---
+
+## 📄 Documentación Adicional
+
+- [Sistema de Persistencia](SISTEMA_PERSISTENCIA.md) - Documentación técnica completa
+- [Stripe Docs](https://stripe.com/docs) - Documentación de pagos
+- [Express Guide](https://expressjs.com) - Guía de Express.js
+
+---
+
+## 🎉 ¡Gracias por usar TransBus!
+
+**¡Buen viaje! 🚌✨**
